@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Quicksand&display=swap">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="shortcut icon" href="#">
+
+    <title>Vue Beginers.</title>
+</head>
+
+<body>
+    <div id="app">
+        <header-component gambar="/image/logo.png"></header-component>
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
+            <div class="container">
+                <a class="navbar-brand" href="#">Navbar</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <router-link to="/" v-bind:class="{'active':this.$route.path == '/', 'nav-link':true}">Home
+                            </router-link>
+                        </li>
+                        <li class="nav-item">
+                            <router-link to="/about" :class="{'active':this.$route.path == '/about', 'nav-link':true}">
+                                About</router-link>
+                        </li>
+                        <li class="nav-item">
+                            <router-link to="/kelas" :class="{'active':this.$route.path == '/kelas', 'nav-link':true}">
+                                Kelas</router-link>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <main>
+                <router-view v-bind:items="kelas" v-on:submitkelas="submitkelas" v-on:hapuskelas="hapuskelas">
+                </router-view>
+            </main>
+            <footer-component></footer-component>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous">
+    </script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-database.js"></script>
+    <script src="/firebase.js"></script>
+    <script src="/components.js"></script>
+    <script src="/router.js"></script>
+    <script>
+        const vm = new Vue({
+            el: '#app',
+            router,
+            data: {
+                kelas: []
+            },
+            created() {
+                kelasRef.on('value', this.resultData, this.errorData);
+            },
+            methods: {
+                resultData(data) {
+                    this.kelas = []
+                    data.forEach(item => {
+                        let dataKelas = {
+                            id: item.key,
+                            judul: item.val().judul,
+                            deskripsi: item.val().deskripsi,
+                            gambar: item.val().gambar
+                        }
+                        this.kelas.push(dataKelas)
+                    });
+                },
+                errorData(err) {
+                    console.log(err);
+                },
+                hapuskelas: function (id) {
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            db.ref('/kelas/' + id).remove();
+                            Swal.fire(
+                                'Deleted!',
+                                'Your file has been deleted.',
+                                'success'
+                            )
+                        }
+                    })
+                },
+                submitkelas: function (kelas) {
+                    kelasRef.push({
+                        judul: kelas.judul,
+                        deskripsi: kelas.deskripsi,
+                        gambar: kelas.gambar,
+                    })
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Kelas berhasil disimpan',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                },
+            },
+            computed: {
+                cetakpath: function () {
+                    console.log(this.$route.path)
+                }
+            },
+            components: {
+                'home': Home
+            }
+        });
+    </script>
+</body>
+
+</html>
